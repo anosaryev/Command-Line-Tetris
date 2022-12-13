@@ -13,8 +13,6 @@
 #define S_PIECE 5
 #define Z_PIECE 6
 
-
-
 int maps[7][4][4] = 
 {
     { /* I */
@@ -210,7 +208,34 @@ int print_game(){
     printw("\n           0 1 2 3 4 5 6 7 8 9\n");
 }
 
-int collision_check(){
+// 5 nested loops :(
+int no_collision_check(){
+    for (int y = 0; y < 4; y ++){
+        for (int x = 0; x < 4; x ++){
+            if (player.map[y][x] == 1){
+                
+                // collision with wall
+                if (player.x + x < 0 || player.x + x > 9 ||
+                    player.y - y > 19 || player.y - y < 0){
+                    return 0;
+                }
+
+                // collision with other tetrominoes
+                for (int i = 0; i < board.len; i ++){
+                    for (int yb = 0; yb < 4; yb ++){
+                        for (int xb = 0; xb < 4; xb ++){
+                            if (board.data[i].map[yb][xb] == 1){
+                                if (player.x + x == board.data[i].x + xb &&
+                                    player.y - y == board.data[i].y - yb){
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     return 1;
 }
 
@@ -220,14 +245,6 @@ int rotate_cw(){
     for (int y = 0; y < 4; y ++){
         for (int x = 0; x < 4; x ++){
             new[y][x] = player.map[3-x][y];
-
-            // bounds check
-            if (new[y][x] == 1){
-                if (player.x + x < 0 || player.x + x > 9 ||
-                    player.y - y > 19 || player.y - y < 0){
-                    return 0;
-                }
-            }
         }
     }
 
@@ -236,59 +253,52 @@ int rotate_cw(){
             player.map[i][j] = new[i][j];
         }
     }
+
+    if (!no_collision_check()){
+        for (int y = 0; y < 4; y ++){
+            for (int x = 0; x < 4; x ++){
+                new[y][x] = player.map[x][3-y];
+            }
+        }
+
+        for (int i = 0; i < 4; i ++){
+            for (int j = 0; j < 4; j ++){
+                player.map[i][j] = new[i][j];
+            }
+        }
+        
+        return 0;
+    }
+
     return 1;
 }
 
 int move_left(){
-    
-    // bounds check
-    for (int y = 0; y < 4; y ++){
-        for (int x = 0; x < 4; x ++){
-            if (player.map[y][x] == 1){
-                if (player.x + x - 1 < 0){
-                    return 0;
-                }
-            }
-        }
-    }
-
     player.x -= 1;
+    if (!no_collision_check()){
+        player.x += 1;
+        return 0;
+    }
     return 1;
 }
 
 int move_right(){
-    
-    // bounds check
-    for (int y = 0; y < 4; y ++){
-        for (int x = 0; x < 4; x ++){
-            if (player.map[y][x] == 1){
-                if (player.x + x + 1 > 9){
-                    return 0;
-                }
-            }
-        }
-    }
-
     player.x += 1;
+    if (!no_collision_check()){
+        player.x -= 1;
+        return 0;
+    }
     return 1;
 }
 
 int move_down(){
-
-    // bounds check
-    for (int y = 0; y < 4; y ++){
-        for (int x = 0; x < 4; x ++){
-            if (player.map[y][x] == 1){
-                if (player.y - y - 1 < 0){
-                    save_piece();
-                    next_piece();
-                    return 0;
-                }
-            }
-        }
-    }
-
     player.y -= 1;
+    if (!no_collision_check()){
+        player.y += 1;
+        save_piece();
+        next_piece();
+        return 0;
+    }
     return 1;
 }
 
