@@ -4,6 +4,7 @@
 #include <time.h>
 #include <errno.h>
 #include <ncurses.h>
+#include <pthread.h>
 
 #define I_PIECE 0
 #define L_PIECE 1
@@ -82,39 +83,58 @@ int print_tetromino(tetromino p1){
 // colour guide:
 // https://dev.to/tenry/terminal-colors-in-c-c-3dgc
 void print_tile(tetromino curr){
-    printw("[]");
-    /*
+    start_color();
     switch (curr.type){
         case (I_PIECE):
-            init_pair(1, COLOR_)
-            printw("\033[36;46m  \033[0m");
+            init_pair(1, COLOR_CYAN, COLOR_CYAN);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (L_PIECE):
-            printw("\033[33;43m  \033[0m");
+            init_pair(1, COLOR_YELLOW, COLOR_YELLOW);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (J_PIECE):
-            printw("\033[34;44m  \033[0m");
+            init_pair(1, COLOR_BLUE, COLOR_BLUE);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (T_PIECE):
-            printw("\033[35;45m  \033[0m");
+            init_pair(1, COLOR_MAGENTA, COLOR_MAGENTA);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (O_PIECE):
-            printw("\033[37;47m  \033[0m");
+            init_pair(1, COLOR_WHITE, COLOR_WHITE);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (S_PIECE):
-            printw("\033[32;42m  \033[0m");
+            init_pair(1, COLOR_GREEN, COLOR_GREEN);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         case (Z_PIECE):
-            printw("\033[31;41m  \033[0m");
+            init_pair(1, COLOR_RED, COLOR_RED);
+            attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
             break;
         default:
             printw("bagel falafel eggs and mac and cheese");
             break;
     }
-    */
 }
 
 int print_game(){
+    clear();
     printw("         Command Line Tetris\n\n");
     printw("    Top:    %d\n", 0); // and next tetromino component
     printw("    Score:  %d\n", 0); // and next tetromino component
@@ -161,6 +181,34 @@ int print_game(){
     printw("\n           0 1 2 3 4 5 6 7 8 9\n");
 }
 
+int move_tetromino(char input){
+    switch (input) {
+        case 'l':
+            player.x -= 1;
+            break;
+        case '\'':
+            player.x += 1;
+            break;
+        case 'p':
+            // rotate
+            player.y += 1;
+            break;
+        case ';':
+            player.y -= 1;
+            break;
+    }
+}
+
+void *move_down(){
+    while (1){
+        struct timespec t0 = {1, 0};
+        nanosleep(&t0, NULL);
+        player.y -= 1;
+        print_game();
+        refresh();
+    }
+}
+
 int main(){
 
     initscr();
@@ -180,10 +228,27 @@ int main(){
     
     next_type = rand()%7;
 
+    char q;
     print_game();
+    refresh();
+    q = getch();
+
+    // moving down thread
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, move_down, NULL);
+    // pthread_join(move_down, NULL);
+
+    while (q != 'q'){
+        move_tetromino(q);
+        print_game();
+        refresh();
+        q = getch();
+
+        // printw("%c", q); // shows inputs
+    }
     
-    getch();
-	endwin();
+    endwin();
+    exit(0);
     return 1;
 }
 
