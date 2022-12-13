@@ -71,10 +71,6 @@ Board board;
 int bag_idx = 7;
 int bag[7] = {0, 1, 2, 3, 4, 5, 6};
 
-int shuffle_bag(){
-    
-}
-
 int choose_piece(int *bag_idx){
     if (*bag_idx == 7){
         *bag_idx = 0;
