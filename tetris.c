@@ -61,12 +61,12 @@ typedef struct piece {
 } Tetromino;
 typedef struct pieces {
     int len;
-    Tetromino data[];
+    Tetromino data[200];
 } Board;
 
 int next_type;
 Tetromino player;
-Board board;
+Board board = {0, {}};
 
 int bag_idx = 7;
 int bag[7] = {0, 1, 2, 3, 4, 5, 6};
@@ -88,13 +88,36 @@ int choose_piece(int *bag_idx){
 }
 
 int save_piece(){
-    Tetromino temp;
-    temp.type = player.type;
-    temp.x = player.x;
-    temp.y = player.y;
-    memcpy(temp.map, player.map, sizeof(int[4][4]));
 
-    board.data[board.len++] = temp;
+    // splits player tetromino into 4 1x1 tetrominos
+    int temp_idx = 0;
+    Tetromino temp[4] = {};
+    for (int y = 0; y < 4; y ++){
+        for (int x = 0; x < 4; x ++){
+            if (player.map[y][x] == 1){
+                temp[temp_idx].type = player.type;
+                temp[temp_idx].x = player.x + x;
+                temp[temp_idx].y = player.y - y;
+                temp_idx ++;
+            }
+
+            if (x == 0 && y == 0){
+                temp[0].map[y][x] = 1;
+                temp[1].map[y][x] = 1;
+                temp[2].map[y][x] = 1;
+                temp[3].map[y][x] = 1;
+            }else{
+                temp[0].map[y][x] = 0;
+                temp[1].map[y][x] = 0;
+                temp[2].map[y][x] = 0;
+                temp[3].map[y][x] = 0;
+            }
+        }
+    }
+
+    for (int i = 0; i < 4; i ++){
+        board.data[board.len++] = temp[i];
+    }
 }
 
 int next_piece(){
@@ -204,7 +227,6 @@ int print_game(){
     printw("\n           0 1 2 3 4 5 6 7 8 9\n");
 }
 
-// 5 nested loops :(
 int no_collision_check(){
     for (int y = 0; y < 4; y ++){
         for (int x = 0; x < 4; x ++){
@@ -218,15 +240,9 @@ int no_collision_check(){
 
                 // collision with other tetrominoes
                 for (int i = 0; i < board.len; i ++){
-                    for (int yb = 0; yb < 4; yb ++){
-                        for (int xb = 0; xb < 4; xb ++){
-                            if (board.data[i].map[yb][xb] == 1){
-                                if (player.x + x == board.data[i].x + xb &&
-                                    player.y - y == board.data[i].y - yb){
-                                    return 0;
-                                }
-                            }
-                        }
+                    if (board.data[i].x == player.x + x &&
+                        board.data[i].y == player.y - y){
+                        return 0;
                     }
                 }
             }
@@ -310,7 +326,7 @@ void *move_down_passive(){
     }
 }
 
-int move_Tetromino(char input){
+int move_tetromino(char input){
     switch (input) {
         case 'l':
             move_left();
@@ -351,7 +367,7 @@ int main(){
     pthread_create(&thread_id, NULL, move_down_passive, NULL);
 
     while (q != 'q'){
-        move_Tetromino(q);
+        move_tetromino(q);
         print_game();
         refresh();
         q = getch();
