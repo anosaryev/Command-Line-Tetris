@@ -6,3 +6,5 @@ all: tetris.c
 run: all
 	./tetris.out
 
+clean:
+	rm -f tetris.out
