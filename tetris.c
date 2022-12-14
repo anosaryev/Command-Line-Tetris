@@ -12,6 +12,7 @@
 #define S_PIECE 5
 #define Z_PIECE 6
 
+int top;
 int status = 0;
 int score = 0;
 int level = 0;
@@ -148,6 +149,34 @@ int save_piece(){
     }
 }
 
+int get_top(){
+    int n = 0;
+
+    FILE *f;
+    char str[10] = "";
+    f = fopen("user.dat", "r");
+    char c = fgetc(f);
+    while (c != '\n' && c != EOF) {
+        n = n*10 + atoi(&c);
+        c = fgetc(f);
+    }
+
+    return n;
+}
+
+int set_top(){
+    if (top > get_top()){
+        FILE *f;
+        char str[10] = "";
+        sprintf(str, "%d", top);
+        f = fopen("user.dat", "w");
+        fputs(str, f);
+        fputs("\n", f);
+    }
+
+    return 1;
+}
+
 int update_stats(int tiles){
     lines += tiles/10;
     switch (tiles/10){
@@ -163,6 +192,9 @@ int update_stats(int tiles){
         case 4:
             score += 1200 * (level + 1);
             break;
+    }
+    if (score > top){
+        top = score;
     }
 
     if (lines/10 > level){
@@ -272,7 +304,7 @@ int print_stats_next(){
     char str[10] = "";
     int x, y;
 
-    sprintf(str, "%d", 0);
+    sprintf(str, "%d", top);
     printw("    Top:    %-9.9s", str);
     printw("     Next");
 
@@ -359,6 +391,8 @@ int end_game(){
     printw("\n              Game over!\n");
     printw("        Press any key to quit.\n");
     getch();
+
+    top = set_top();
     endwin();
     exit(0);
 }
@@ -473,6 +507,7 @@ int main(){
     noecho();
     clear();
     
+    top = get_top();
     next_type = choose_piece(&bag_idx);
     next_piece();
     status = 1;
@@ -493,9 +528,9 @@ int main(){
         q = getch();
     }
     
+    top = set_top();
     endwin();
     exit(0);
-    return 1;
 }
 
 /*
