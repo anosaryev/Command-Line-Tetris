@@ -156,9 +156,9 @@ int next_piece(){
     return 1;
 }
 
-void print_tile(Tetromino curr){
+void print_tile(int type){
     start_color();
-    switch (curr.type){
+    switch (type){
         case (I_PIECE):
             init_pair(I_PIECE+1, COLOR_CYAN, COLOR_CYAN);
             attron(COLOR_PAIR(I_PIECE+1));
@@ -202,19 +202,49 @@ void print_tile(Tetromino curr){
             attroff(COLOR_PAIR(Z_PIECE+1));
             break;
         default:
-            printw("bagel falafel eggs and mac and cheese");
+            printw(". ");
             break;
     }
 }
 
-int print_game(){
-    clear();
-    printw("         Command Line Tetris\n\n");
-    printw("    Top:    %d\n", 0); // and next Tetromino component
-    printw("    Score:  %d\n", 0); // and next Tetromino component
-    printw("    Level:  %d\n", 0); // and next Tetromino component
-    printw("    Lines:  %d\n", 0); // and next Tetromino component
+int print_stats_next(){
+    char str[10] = "";
+    int x, y;
+
+    sprintf(str, "%d", 0);
+    printw("    Top:    %-9.9s", str);
+    printw("     Next");
+
+    y = 1;
+    sprintf(str, "%d", 0);
+    printw("\n    Score:  %-9.9s   ", str);
+    for (x = 0; x < 4; x ++){
+        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
+    }
+
+    y ++;
+    sprintf(str, "%d", 0);
+    printw("\n    Level:  %-9.9s   ", str);
+    for (x = 0; x < 4; x ++){
+        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
+    }
+
+    y ++;
+    sprintf(str, "%d", 0);
+    printw("\n    Lines:  %-9.9s   ", str);
+    for (x = 0; x < 4; x ++){
+        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
+    }
     printw("\n");
+    return 1;
+}
+
+int print_game(){
+    erase();
+    printw("         Command Line Tetris\n\n");
+
+    print_stats_next();
+    // displays temporary placeholder values
     
     int x, y, i;
     for (y = 19; y >= 0; y--){
@@ -225,7 +255,7 @@ int print_game(){
             if (x - player.x < 4 && x - player.x >= 0 &&
                 player.y - y < 4 && player.y - y >= 0 &&
                 player.map[player.y - y][x - player.x] == 1){
-                    print_tile(player);
+                    print_tile(player.type);
             }else{
 
                 // search every board piece for something at coords
@@ -235,7 +265,7 @@ int print_game(){
                         temp.y - y < 4 && temp.y - y >= 0){
                         if (temp.map[temp.y - y][x - temp.x] == 1){
                             // draw board piece with colour based on type
-                            print_tile(temp);
+                            print_tile(temp.type);
                             break;
                         }
                     }
@@ -407,10 +437,10 @@ int main(){
 /*
          Command Line Tetris
 
-    Top:    w           [````````]
-    Score:  x           [  next  ]
-    Level:  y           Tetromino]
-    Lines:  z           [________]
+    Top:    0000000     Next
+    Score:  0000000  [  next  ]
+    Level:  0000000  [  piece ]
+    Lines:  0000000  [  here  ]
 
       19   . . . . . . . . . .
       18   . . . . . . . . . .
