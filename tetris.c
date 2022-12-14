@@ -13,6 +13,9 @@
 #define Z_PIECE 6
 
 int status = 0;
+int score = 0;
+int level = 0;
+int lines = 0;
 
 int maps[7][4][4] = 
 {
@@ -145,8 +148,34 @@ int save_piece(){
     }
 }
 
+int update_stats(int tiles){
+    lines += tiles/10;
+    switch (tiles/10){
+        case 1:
+            score += 40 * (level + 1);
+            break;
+        case 2:
+            score += 100 * (level + 1);
+            break;
+        case 3:
+            score += 300 * (level + 1);
+            break;
+        case 4:
+            score += 1200 * (level + 1);
+            break;
+    }
+
+    if (lines/10 > level){
+        level++;
+        Board new_board = {0, {}};
+        board = new_board;
+    }
+    return 1;
+}
+
 int clear_lines(){
     int counts[20] = {};
+    int tiles = 0;
 
     for (int i = 0; i < board.len; i ++){
         counts[board.data[i].y] += 1;
@@ -154,6 +183,7 @@ int clear_lines(){
 
     for (int i = board.len-1; i >= 0; i --){
         if (counts[board.data[i].y] == 10){
+            tiles += 1;
             for (int j = i; j < board.len; j ++){
                 board.data[j] = board.data[j+1];
             }
@@ -168,7 +198,8 @@ int clear_lines(){
             board.data[i].y -= counter;
         }
     }
-    return 1;
+
+    return update_stats(tiles);
 }
 
 int next_piece(){
@@ -246,21 +277,21 @@ int print_stats_next(){
     printw("     Next");
 
     y = 0;
-    sprintf(str, "%d", 0);
+    sprintf(str, "%d", score);
     printw("\n    Score:  %-9.9s   ", str);
     for (x = 0; x < 4; x ++){
         (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
     }
 
     y ++;
-    sprintf(str, "%d", 0);
+    sprintf(str, "%d", level);
     printw("\n    Level:  %-9.9s   ", str);
     for (x = 0; x < 4; x ++){
         (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
     }
 
     y ++;
-    sprintf(str, "%d", 0);
+    sprintf(str, "%d", lines);
     printw("\n    Lines:  %-9.9s   ", str);
     for (x = 0; x < 4; x ++){
         (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
@@ -403,19 +434,23 @@ void *move_down_passive(){
 int move_tetromino(char input){
     switch (input) {
         case 'l':
+        case 'w':
             move_left();
             break;
         case '\'':
+        case 'd':
             move_right();
             break;
         case ';':
+        case 's':
             move_down();
             break;
         case 'p':
+        case 'a':
             rotate_cw();
             break;
-        case 'w': // DEBUG PURPOSES
-            player.y += 1;
+        case ' ':
+            while(move_down()){}
             break;
     }
 }
