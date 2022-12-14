@@ -12,6 +12,8 @@
 #define S_PIECE 5
 #define Z_PIECE 6
 
+int status = 0;
+
 int maps[7][4][4] = 
 {
     { /* I */
@@ -86,6 +88,30 @@ int choose_piece(int *bag_idx){
     return bag[*bag_idx];
 }
 
+int no_collision_check(){
+    for (int y = 0; y < 4; y ++){
+        for (int x = 0; x < 4; x ++){
+            if (player.map[y][x] == 1){
+                
+                // collision with wall
+                if (player.x + x < 0 || player.x + x > 9 ||
+                    player.y - y > 19 || player.y - y < 0){
+                    return 0;
+                }
+
+                // collision with other tetrominoes
+                for (int i = 0; i < board.len; i ++){
+                    if (board.data[i].x == player.x + x &&
+                        board.data[i].y == player.y - y){
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+    return 1;
+}
+
 int save_piece(){
 
     // splits player tetromino into 4 1x1 tetrominos
@@ -153,6 +179,10 @@ int next_piece(){
 
     next_type = choose_piece(&bag_idx);
 
+    if (!no_collision_check()){
+        return 0;
+    }
+
     return 1;
 }
 
@@ -215,7 +245,7 @@ int print_stats_next(){
     printw("    Top:    %-9.9s", str);
     printw("     Next");
 
-    y = 1;
+    y = 0;
     sprintf(str, "%d", 0);
     printw("\n    Score:  %-9.9s   ", str);
     for (x = 0; x < 4; x ++){
@@ -235,7 +265,7 @@ int print_stats_next(){
     for (x = 0; x < 4; x ++){
         (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
     }
-    printw("\n");
+    printw("\n\n");
     return 1;
 }
 
@@ -282,28 +312,14 @@ int print_game(){
     printw("\n           0 1 2 3 4 5 6 7 8 9\n");
 }
 
-int no_collision_check(){
-    for (int y = 0; y < 4; y ++){
-        for (int x = 0; x < 4; x ++){
-            if (player.map[y][x] == 1){
-                
-                // collision with wall
-                if (player.x + x < 0 || player.x + x > 9 ||
-                    player.y - y > 19 || player.y - y < 0){
-                    return 0;
-                }
-
-                // collision with other tetrominoes
-                for (int i = 0; i < board.len; i ++){
-                    if (board.data[i].x == player.x + x &&
-                        board.data[i].y == player.y - y){
-                        return 0;
-                    }
-                }
-            }
-        }
-    }
-    return 1;
+int end_game(){
+    status = 0;
+    print_game();
+    printw("\n              Game over!\n");
+    printw("        Press any key to quit.\n");
+    getch();
+    endwin();
+    exit(0);
 }
 
 int rotate_cw(){
@@ -364,7 +380,11 @@ int move_down(){
         player.y += 1;
         save_piece();
         clear_lines();
-        next_piece();
+        if (!next_piece()){
+            player.y += 2;
+            next_type = player.type;
+            end_game();
+        }
         return 0;
     }
     return 1;
@@ -374,9 +394,7 @@ void *move_down_passive(){
     while (1){
         struct timespec t0 = {1, 0};
         nanosleep(&t0, NULL);
-        if (move_down() == 0){
-            // do something
-        }
+        move_down();
         print_game();
         refresh();
     }
@@ -404,7 +422,7 @@ int move_tetromino(char input){
 
 int main(){
     srand(time(0));
-
+    
     initscr();
     cbreak();
     noecho();
@@ -421,8 +439,9 @@ int main(){
     // moving down thread
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, move_down_passive, NULL);
-
-    while (q != 'q'){
+    
+    status = 1;
+    while (q != 'q' && status){
         move_tetromino(q);
         print_game();
         refresh();
