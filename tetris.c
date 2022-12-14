@@ -199,8 +199,6 @@ int update_stats(int tiles){
 
     if (lines/10 > level){
         level++;
-        Board new_board = {0, {}};
-        board = new_board;
     }
     return 1;
 }
