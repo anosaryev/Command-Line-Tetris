@@ -340,7 +340,17 @@ int print_game(){
         }
         printw("\n");
     }
-    printw("\n           0 1 2 3 4 5 6 7 8 9\n");
+    printw("\n           0 1 2 3 4 5 6 7 8 9\n\n");
+
+    if (status){
+        printw("              Controls:\n");
+        printw("         L or A: Move Left\n");
+        printw("         \" or D: Move Right\n");
+        printw("         P or W: Rotate CW\n");
+        printw("         ; or S: Soft Drop\n");
+        printw("          Space: Hard Drop\n");
+        printw("            Q: Quit Game");
+    }
 }
 
 int end_game(){
@@ -433,20 +443,20 @@ void *move_down_passive(){
 
 int move_tetromino(char input){
     switch (input) {
+        case ';':
+        case 's':
+            move_down();
+            break;
         case 'l':
-        case 'w':
+        case 'a':
             move_left();
             break;
         case '\'':
         case 'd':
             move_right();
             break;
-        case ';':
-        case 's':
-            move_down();
-            break;
         case 'p':
-        case 'a':
+        case 'w':
             rotate_cw();
             break;
         case ' ':
@@ -465,6 +475,7 @@ int main(){
     
     next_type = choose_piece(&bag_idx);
     next_piece();
+    status = 1;
 
     char q;
     print_game();
@@ -475,7 +486,6 @@ int main(){
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, move_down_passive, NULL);
     
-    status = 1;
     while (q != 'q' && status){
         move_tetromino(q);
         print_game();
@@ -518,4 +528,12 @@ int main(){
       00   . . . . . . . . . .
 
            0 1 2 3 4 5 6 7 8 9
+           
+              Controls:
+         L or A: Move Left
+         " or D: Move Right
+         P or W: Rotate CW
+         ; or S: Soft Drop
+          Space: Hard Drop
+            Q: Quit Game
 */       
