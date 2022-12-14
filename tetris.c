@@ -1,9 +1,8 @@
-#include <stdio.h>
+#include <ncurses.h>
+#include <pthread.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <ncurses.h>
-#include <pthread.h>
 
 #define I_PIECE 0
 #define L_PIECE 1
@@ -118,6 +117,32 @@ int save_piece(){
     for (int i = 0; i < 4; i ++){
         board.data[board.len++] = temp[i];
     }
+}
+
+int clear_lines(){
+    int counts[20] = {};
+
+    for (int i = 0; i < board.len; i ++){
+        counts[board.data[i].y] += 1;
+    }
+
+    for (int i = board.len-1; i >= 0; i --){
+        if (counts[board.data[i].y] == 10){
+            for (int j = i; j < board.len; j ++){
+                board.data[j] = board.data[j+1];
+            }
+            board.len --;
+        }else{
+            int counter = 0;
+            for (int j = 0; j < board.data[i].y; j++){
+                if (counts[j] == 10){
+                    counter ++;
+                }
+            }
+            board.data[i].y -= counter;
+        }
+    }
+    return 1;
 }
 
 int next_piece(){
@@ -308,6 +333,7 @@ int move_down(){
     if (!no_collision_check()){
         player.y += 1;
         save_piece();
+        clear_lines();
         next_piece();
         return 0;
     }
