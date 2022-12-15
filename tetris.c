@@ -12,6 +12,7 @@
 #define S_PIECE 5
 #define Z_PIECE 6
 
+
 int top;
 int status = 0;
 int score = 0;
@@ -64,6 +65,7 @@ typedef struct piece {
     int x;
     int y;
 } Tetromino;
+
 typedef struct pieces {
     int len;
     Tetromino data[200];
@@ -76,9 +78,9 @@ Board board = {0, {}};
 int bag_idx = 7;
 int bag[7] = {0, 1, 2, 3, 4, 5, 6};
 
-int choose_piece(int *bag_idx){
-    if (*bag_idx == 7){
-        *bag_idx = 0;
+int choose_piece(){
+    if (bag_idx == 7){
+        bag_idx = 0;
         for (int i = 0; i < 7; i++){
             int swap = rand() % 7;
             int temp = bag[i];
@@ -86,10 +88,10 @@ int choose_piece(int *bag_idx){
             bag[swap] = temp;
         }
     }else{
-        *bag_idx += 1;
+        bag_idx += 1;
     }
 
-    return bag[*bag_idx];
+    return bag[bag_idx];
 }
 
 int no_collision_check(){
@@ -238,7 +240,7 @@ int next_piece(){
     player.y = 20;
     memcpy(player.map, maps[player.type], sizeof(int[4][4]));
 
-    next_type = choose_piece(&bag_idx);
+    next_type = choose_piece();
 
     if (!no_collision_check()){
         return 0;
@@ -247,47 +249,51 @@ int next_piece(){
     return 1;
 }
 
-void print_tile(int type){
+int init_colors(){
     start_color();
+    init_pair(I_PIECE+1, COLOR_CYAN, COLOR_CYAN);
+    init_pair(L_PIECE+1, COLOR_YELLOW, COLOR_YELLOW);
+    init_pair(J_PIECE+1, COLOR_BLUE, COLOR_BLUE);
+    init_pair(T_PIECE+1, COLOR_MAGENTA, COLOR_MAGENTA);
+    init_pair(O_PIECE+1, COLOR_WHITE, COLOR_WHITE);
+    init_pair(S_PIECE+1, COLOR_GREEN, COLOR_GREEN);
+    init_pair(Z_PIECE+1, COLOR_RED, COLOR_RED);
+    return 1;
+}
+
+void print_tile(int type){
     switch (type){
         case (I_PIECE):
-            init_pair(I_PIECE+1, COLOR_CYAN, COLOR_CYAN);
             attron(COLOR_PAIR(I_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(I_PIECE+1));
             break;
         case (L_PIECE):
-            init_pair(L_PIECE+1, COLOR_YELLOW, COLOR_YELLOW);
             attron(COLOR_PAIR(L_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(L_PIECE+1));
             break;
         case (J_PIECE):
-            init_pair(J_PIECE+1, COLOR_BLUE, COLOR_BLUE);
             attron(COLOR_PAIR(J_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(J_PIECE+1));
             break;
         case (T_PIECE):
-            init_pair(T_PIECE+1, COLOR_MAGENTA, COLOR_MAGENTA);
             attron(COLOR_PAIR(T_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(T_PIECE+1));
             break;
         case (O_PIECE):
-            init_pair(O_PIECE+1, COLOR_WHITE, COLOR_WHITE);
             attron(COLOR_PAIR(O_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(O_PIECE+1));
             break;
         case (S_PIECE):
-            init_pair(S_PIECE+1, COLOR_GREEN, COLOR_GREEN);
             attron(COLOR_PAIR(S_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(S_PIECE+1));
             break;
         case (Z_PIECE):
-            init_pair(Z_PIECE+1, COLOR_RED, COLOR_RED);
             attron(COLOR_PAIR(Z_PIECE+1));
             printw("  ");
             attroff(COLOR_PAIR(Z_PIECE+1));
@@ -504,9 +510,10 @@ int main(){
     cbreak();
     noecho();
     clear();
+    init_colors();
     
     top = get_top();
-    next_type = choose_piece(&bag_idx);
+    next_type = choose_piece();
     next_piece();
     status = 1;
 
@@ -569,4 +576,4 @@ int main(){
          ; or S: Soft Drop
           Space: Hard Drop
             Q: Quit Game
-*/       
+*/
