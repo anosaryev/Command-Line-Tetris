@@ -74,6 +74,7 @@ typedef struct pieces {
 int next_type;
 Tetromino player;
 Board board = {0, {}};
+int printing = 0;
 
 int bag_idx = 7;
 int bag[7] = {0, 1, 2, 3, 4, 5, 6};
@@ -337,6 +338,10 @@ int print_stats_next(){
 }
 
 int print_game(){
+    if (printing){
+        return 0;
+    }
+    printing = 1;
     erase();
     printw("         Command Line Tetris\n\n");
 
@@ -387,6 +392,8 @@ int print_game(){
         printw("          Space: Hard Drop\n");
         printw("            Q: Quit Game");
     }
+    
+    printing = 0;
 }
 
 int end_game(){
@@ -519,7 +526,7 @@ int main(){
 
     char q;
     print_game();
-    refresh();
+    // refresh();
     q = getch();
 
     // moving down thread
@@ -529,7 +536,7 @@ int main(){
     while (q != 'q' && status){
         move_tetromino(q);
         print_game();
-        refresh();
+        // refresh();
         q = getch();
     }
     
