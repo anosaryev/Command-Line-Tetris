@@ -4,13 +4,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define I_PIECE 0
-#define L_PIECE 1
-#define J_PIECE 2
-#define T_PIECE 3
-#define O_PIECE 4
-#define S_PIECE 5
-#define Z_PIECE 6
+#define I_PIECE 1
+#define L_PIECE 2
+#define J_PIECE 3
+#define T_PIECE 4
+#define O_PIECE 5
+#define S_PIECE 6
+#define Z_PIECE 7
+
+#define BOARD_X 11
+#define BOARD_Y 7
+
+#define DEBUG 0
 
 
 int top;
@@ -76,6 +81,7 @@ Tetromino player;
 Board board = {0, {}};
 int printing = 0;
 
+int delay = 999999999;
 int bag_idx = 7;
 int bag[7] = {0, 1, 2, 3, 4, 5, 6};
 
@@ -198,11 +204,181 @@ int update_stats(int tiles){
     }
     if (score > top){
         top = score;
+        set_top();
     }
 
     if (lines/10 > level){
         level++;
+        delay *= 0.8;
     }
+    return 1;
+}
+
+int init_colors(){
+    start_color();
+    init_pair(I_PIECE, COLOR_CYAN, COLOR_CYAN);
+    init_pair(L_PIECE, COLOR_YELLOW, COLOR_YELLOW);
+    init_pair(J_PIECE, COLOR_BLUE, COLOR_BLUE);
+    init_pair(T_PIECE, COLOR_MAGENTA, COLOR_MAGENTA);
+    init_pair(O_PIECE, COLOR_WHITE, COLOR_WHITE);
+    init_pair(S_PIECE, COLOR_GREEN, COLOR_GREEN);
+    init_pair(Z_PIECE, COLOR_RED, COLOR_RED);
+    return 1;
+}
+
+void print_tile(int y, int x, int type){
+    switch (type){
+        case 0:
+            mvprintw(y, x, ". ");
+            break;
+        case (I_PIECE):
+            attron(COLOR_PAIR(I_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(I_PIECE));
+            break;
+        case (L_PIECE):
+            attron(COLOR_PAIR(L_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(L_PIECE));
+            break;
+        case (J_PIECE):
+            attron(COLOR_PAIR(J_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(J_PIECE));
+            break;
+        case (T_PIECE):
+            attron(COLOR_PAIR(T_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(T_PIECE));
+            break;
+        case (O_PIECE):
+            attron(COLOR_PAIR(O_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(O_PIECE));
+            break;
+        case (S_PIECE):
+            attron(COLOR_PAIR(S_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(S_PIECE));
+            break;
+        case (Z_PIECE):
+            attron(COLOR_PAIR(Z_PIECE));
+            mvprintw(y, x, "  ");
+            attroff(COLOR_PAIR(Z_PIECE));
+            break;
+        default:
+            mvprintw(y, x, ". ");
+            break;
+    }
+}
+
+int print_stats(){
+    char str[10] = "";
+    int x, y;
+
+    y = -1;
+    sprintf(str, "%d", top);
+    mvprintw(4+y, 4, "Top:    %-9.9s", str);
+
+    y++;
+    sprintf(str, "%d", score);
+    mvprintw(4+y, 4, "Score:  %-9.9s   ", str);
+
+    y ++;
+    sprintf(str, "%d", level);
+    mvprintw(4+y, 4, "Level:  %-9.9s   ", str);
+
+    y ++;
+    sprintf(str, "%d", lines);
+    mvprintw(4+y, 4, "Lines:  %-9.9s   ", str);
+    return 1;
+}
+
+int print_next(){
+    mvprintw(3, 26, "Next");
+    for (int y = 0; y < 3; y ++){
+        for (int x = 0; x < 4; x ++){
+            if (maps[next_type][y][x] == 1){
+                print_tile(4+y, 24 + 2*x, next_type+1);
+            }else{
+                
+                mvprintw(4+y, 24 + 2*x, "  ");
+            }
+        }
+    }
+    return 1;
+}
+
+int print_board(){
+    erase();
+    mvprintw(1, 9, "Command Line Tetris\n\n");
+
+    print_stats();
+    print_next();
+
+    int x, y, i;
+    for (y = 19; y >= 0; y--){
+        mvprintw(BOARD_Y+19 - y, 6, "%02d", y);
+
+        for (x = 0; x < 10; x++){
+            print_tile(BOARD_Y+19 - y, BOARD_X + 2*x, 0);
+         }
+    }
+    mvprintw(BOARD_Y+21, 11, "0 1 2 3 4 5 6 7 8 9");
+    return 1;
+}
+
+int print_controls(){
+    int y = BOARD_Y + 4;
+    int x = BOARD_X + 24;
+    if (status){
+        mvprintw(y++, x+7, "Controls\n");
+        y++;
+        mvprintw(y++, x+1, "Left or A: Move Left\n");
+        mvprintw(y++, x+0, "Right or D: Move Right\n");
+        mvprintw(y++, x+2, "Up or W: Rotate CW\n");
+        y++;
+        mvprintw(y++, x+1, "Down or S: Soft Drop\n");
+        mvprintw(y++, x+3, "Space: Hard Drop\n");
+        y++;
+        mvprintw(y, x+5, "Q: Quit Game\n");
+    }
+    return 1;
+}
+
+int update_board(){
+    int y, x, i;
+    for (y = 19; y >= 0; y--){
+        for (x = 0; x < 10; x++){
+
+            // search player piece for something at coords
+            if (x - player.x < 4 && x - player.x >= 0 &&
+                player.y - y < 4 && player.y - y >= 0 &&
+                player.map[player.y - y][x - player.x] == 1){
+                print_tile(BOARD_Y+19 - y, BOARD_X + 2*x, player.type+1);
+            }else{
+
+                // search every board piece for something at coords
+                for (i = 0; i < board.len; i++){
+                    Tetromino temp = board.data[i];
+                    if (x - temp.x < 4 && x - temp.x >= 0 &&
+                        temp.y - y < 4 && temp.y - y >= 0){
+                        if (temp.map[temp.y - y][x - temp.x] == 1){
+                            // draw board piece with colour based on type
+                            print_tile(BOARD_Y+19 - y, BOARD_X + 2*x, temp.type+1);
+                            break;
+                        }
+                    }
+                }
+                
+                // no player or board piece
+                if (i == board.len){
+                    print_tile(BOARD_Y+19 - y, BOARD_X + 2*x, 0);
+                }
+            }
+        }
+    }
+    print_stats();
     return 1;
 }
 
@@ -242,6 +418,7 @@ int next_piece(){
     memcpy(player.map, maps[player.type], sizeof(int[4][4]));
 
     next_type = choose_piece();
+    print_next();
 
     if (!no_collision_check()){
         return 0;
@@ -250,157 +427,14 @@ int next_piece(){
     return 1;
 }
 
-int init_colors(){
-    start_color();
-    init_pair(I_PIECE+1, COLOR_CYAN, COLOR_CYAN);
-    init_pair(L_PIECE+1, COLOR_YELLOW, COLOR_YELLOW);
-    init_pair(J_PIECE+1, COLOR_BLUE, COLOR_BLUE);
-    init_pair(T_PIECE+1, COLOR_MAGENTA, COLOR_MAGENTA);
-    init_pair(O_PIECE+1, COLOR_WHITE, COLOR_WHITE);
-    init_pair(S_PIECE+1, COLOR_GREEN, COLOR_GREEN);
-    init_pair(Z_PIECE+1, COLOR_RED, COLOR_RED);
-    return 1;
-}
-
-void print_tile(int type){
-    switch (type){
-        case (I_PIECE):
-            attron(COLOR_PAIR(I_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(I_PIECE+1));
-            break;
-        case (L_PIECE):
-            attron(COLOR_PAIR(L_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(L_PIECE+1));
-            break;
-        case (J_PIECE):
-            attron(COLOR_PAIR(J_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(J_PIECE+1));
-            break;
-        case (T_PIECE):
-            attron(COLOR_PAIR(T_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(T_PIECE+1));
-            break;
-        case (O_PIECE):
-            attron(COLOR_PAIR(O_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(O_PIECE+1));
-            break;
-        case (S_PIECE):
-            attron(COLOR_PAIR(S_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(S_PIECE+1));
-            break;
-        case (Z_PIECE):
-            attron(COLOR_PAIR(Z_PIECE+1));
-            printw("  ");
-            attroff(COLOR_PAIR(Z_PIECE+1));
-            break;
-        default:
-            printw(". ");
-            break;
-    }
-}
-
-int print_stats_next(){
-    char str[10] = "";
-    int x, y;
-
-    sprintf(str, "%d", top);
-    printw("    Top:    %-9.9s", str);
-    printw("     Next");
-
-    y = 0;
-    sprintf(str, "%d", score);
-    printw("\n    Score:  %-9.9s   ", str);
-    for (x = 0; x < 4; x ++){
-        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
-    }
-
-    y ++;
-    sprintf(str, "%d", level);
-    printw("\n    Level:  %-9.9s   ", str);
-    for (x = 0; x < 4; x ++){
-        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
-    }
-
-    y ++;
-    sprintf(str, "%d", lines);
-    printw("\n    Lines:  %-9.9s   ", str);
-    for (x = 0; x < 4; x ++){
-        (maps[next_type][y][x] == 1)? print_tile(next_type) : printw("  ");
-    }
-    printw("\n\n");
-    return 1;
-}
-
-int print_game(){
-    if (printing){
-        return 0;
-    }
-    printing = 1;
-    erase();
-    printw("         Command Line Tetris\n\n");
-
-    print_stats_next();
-    // displays temporary placeholder values
-    
-    int x, y, i;
-    for (y = 19; y >= 0; y--){
-        printw("      %02d   ", y);
-        
-        for (x = 0; x < 10; x++){
-            // search player piece for something at coords
-            if (x - player.x < 4 && x - player.x >= 0 &&
-                player.y - y < 4 && player.y - y >= 0 &&
-                player.map[player.y - y][x - player.x] == 1){
-                    print_tile(player.type);
-            }else{
-
-                // search every board piece for something at coords
-                for (i = 0; i < board.len; i++){
-                    Tetromino temp = board.data[i];
-                    if (x - temp.x < 4 && x - temp.x >= 0 &&
-                        temp.y - y < 4 && temp.y - y >= 0){
-                        if (temp.map[temp.y - y][x - temp.x] == 1){
-                            // draw board piece with colour based on type
-                            print_tile(temp.type);
-                            break;
-                        }
-                    }
-                }
-                
-                // no player or board piece
-                if (i == board.len){
-                    printw(". ");
-                }
-            }
-        }
-        printw("\n");
-    }
-    printw("\n           0 1 2 3 4 5 6 7 8 9\n\n");
-
-    if (status){
-        printw("              Controls:\n");
-        printw("         L or A: Move Left\n");
-        printw("         \" or D: Move Right\n");
-        printw("         P or W: Rotate CW\n");
-        printw("         ; or S: Soft Drop\n");
-        printw("          Space: Hard Drop\n");
-        printw("            Q: Quit Game");
-    }
-    
-    printing = 0;
-}
-
 int end_game(){
+    int y = BOARD_Y + 8;
+    int x = BOARD_X + 24;
+
     status = 0;
-    print_game();
-    printw("\n              Game over!\n");
-    printw("        Press any key to quit.\n");
+    print_board();
+    mvprintw(y++, x+8, "Game over!\n");
+    mvprintw(y++, x+2, "Press any key to quit.\n");
     getch();
 
     top = set_top();
@@ -435,10 +469,8 @@ int rotate_cw(){
                 player.map[i][j] = new[i][j];
             }
         }
-        
         return 0;
     }
-
     return 1;
 }
 
@@ -476,36 +508,50 @@ int move_down(){
     return 1;
 }
 
-void *move_down_passive(){
+void *render(){
     while (1){
-        struct timespec t0 = {1, 0};
+        struct timespec t0 = {0, 16666666};
         nanosleep(&t0, NULL);
-        move_down();
-        print_game();
+        update_board();
         refresh();
     }
 }
 
-int move_tetromino(char input){
+void *move_down_passive(){
+    while (1){
+        struct timespec t0 = {0, delay};
+        nanosleep(&t0, NULL);
+        move_down();
+    }
+}
+
+// down up left right
+int move_tetromino(int input){
     switch (input) {
-        case ';':
+        case KEY_DOWN:
         case 's':
             move_down();
             break;
-        case 'l':
+        case KEY_LEFT:
         case 'a':
             move_left();
             break;
-        case '\'':
+        case KEY_RIGHT:
         case 'd':
             move_right();
             break;
-        case 'p':
+        case KEY_UP:
         case 'w':
             rotate_cw();
             break;
         case ' ':
             while(move_down()){}
+            break;
+        case 'q':
+        case '/':
+            if (DEBUG){
+                player.y ++;
+            }
             break;
     }
 }
@@ -518,25 +564,27 @@ int main(){
     noecho();
     clear();
     init_colors();
+    curs_set(0);
+    keypad(stdscr, TRUE);
     
     top = get_top();
     next_type = choose_piece();
     next_piece();
     status = 1;
 
-    char q;
-    print_game();
-    // refresh();
+    int q;
+    print_board();
+    update_board();
+    print_controls();
     q = getch();
-
+ 
     // moving down thread
-    pthread_t thread_id;
-    pthread_create(&thread_id, NULL, move_down_passive, NULL);
+    pthread_t down_id, render_id;
+    pthread_create(&down_id, NULL, move_down_passive, NULL);
+    pthread_create(&render_id, NULL, render, NULL);
     
     while (q != 'q' && status){
         move_tetromino(q);
-        print_game();
-        // refresh();
         q = getch();
     }
     
@@ -576,11 +624,11 @@ int main(){
 
            0 1 2 3 4 5 6 7 8 9
            
-              Controls:
-         L or A: Move Left
-         " or D: Move Right
-         P or W: Rotate CW
-         ; or S: Soft Drop
-          Space: Hard Drop
-            Q: Quit Game
+               Controls
+         Left or A: Move Left
+        Right or D: Move Right
+          Up or W: Rotate CW
+         Down or S: Soft Drop
+           Space: Hard Drop
+             Q: Quit Game
 */
