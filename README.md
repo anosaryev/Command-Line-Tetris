@@ -27,7 +27,4 @@ An implementation of Classic Tetris that runs in your console window.
 
 ### Known Bugs 👾
 - Recurring bug causes the screen to fill with random terminal colour codes and text.
-  - Moving active piece over bugged locations in board causes the location to update.
-  - Possible causes:
-    - Concurrent calls to print functions from multiple threads.
-    - Faulty handling of memory
+  - Moving active piece over bugged locations map update location on board and revert bugged change.
