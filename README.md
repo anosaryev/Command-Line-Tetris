@@ -3,6 +3,9 @@
 An implementation of Classic Tetris that runs in your console window.
 
 ### Info 📰
+- Instructions
+  - In the repo directory, execute `$ make run`
+    - If make is not available, see makefile for compile steps
 - Controls
   - W / Up Arrow Key: Rotate Piece Clockwise
   - A / Left Arrow Key: Move Piece Left
