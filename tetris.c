@@ -76,7 +76,7 @@ int main(){
     cbreak();
     curs_set(0);
     keypad(stdscr, TRUE);
-    
+
     init_colors();
     
     top = get_top();

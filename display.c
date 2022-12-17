@@ -26,48 +26,12 @@ int init_colors(){
 }
 
 void print_tile(int y, int x, int type){
-    switch (type){
-        case 0:
-            mvprintw(y, x, ". ");
-            break;
-        case (I_PIECE):
-            attron(COLOR_PAIR(I_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(I_PIECE));
-            break;
-        case (L_PIECE):
-            attron(COLOR_PAIR(L_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(L_PIECE));
-            break;
-        case (J_PIECE):
-            attron(COLOR_PAIR(J_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(J_PIECE));
-            break;
-        case (T_PIECE):
-            attron(COLOR_PAIR(T_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(T_PIECE));
-            break;
-        case (O_PIECE):
-            attron(COLOR_PAIR(O_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(O_PIECE));
-            break;
-        case (S_PIECE):
-            attron(COLOR_PAIR(S_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(S_PIECE));
-            break;
-        case (Z_PIECE):
-            attron(COLOR_PAIR(Z_PIECE));
-            mvprintw(y, x, "  ");
-            attroff(COLOR_PAIR(Z_PIECE));
-            break;
-        default:
-            mvprintw(y, x, ". ");
-            break;
+    if (type == 0){
+        mvprintw(y, x, ". ");
+    }else{
+        attron(COLOR_PAIR(type));
+        mvprintw(y, x, "  ");
+        attroff(COLOR_PAIR(type));
     }
 }
 
@@ -78,14 +42,17 @@ int print_stats(){
     y = -1;
     sprintf(str, "%d", top);
     mvprintw(4+y, 4, "Top:    %-9.9s", str);
+    strcpy(str, "");
 
     y++;
     sprintf(str, "%d", score);
     mvprintw(4+y, 4, "Score:  %-9.9s   ", str);
+    strcpy(str, "");
 
     y ++;
     sprintf(str, "%d", level);
     mvprintw(4+y, 4, "Level:  %-9.9s   ", str);
+    strcpy(str, "");
 
     y ++;
     sprintf(str, "%d", lines);
