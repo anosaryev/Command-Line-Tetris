@@ -13,24 +13,23 @@ extern int next_type;
 extern Tetromino player;
 extern Board board;
 
-extern int bag_idx;
-extern int bag[7];
+int bag_idx = 0;
+int bag[7] = {0, 1, 2, 3, 4, 5, 6};
 
 extern int maps[7][4][4];
 
 int choose_piece(){
-    if (bag_idx == 7){
-        bag_idx = 0;
+    if (bag_idx == 0){
         for (int i = 0; i < 7; i++){
             int swap = rand() % 7;
             int temp = bag[i];
             bag[i] = bag[swap];
             bag[swap] = temp;
         }
-    }else{
-        bag_idx += 1;
     }
-
+    
+    bag_idx ++;
+    bag_idx %= 7;
     return bag[bag_idx];
 }
 
@@ -183,6 +182,7 @@ int next_piece(){
     memcpy(player.map, maps[player.type], sizeof(int[4][4]));
 
     next_type = choose_piece();
+
     print_next();
 
     if (!no_collision_check()){

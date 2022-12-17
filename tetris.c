@@ -15,9 +15,6 @@ int next_type;
 Tetromino player;
 Board board = {0, {}};
 
-int bag_idx = 7;
-int bag[7] = {0, 1, 2, 3, 4, 5, 6};
-
 int maps[7][4][4] = 
 {
     { /* I */
