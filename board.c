@@ -96,12 +96,14 @@ int get_top(){
     FILE *f;
     char str[10] = "";
     f = fopen("user.dat", "r");
-    char c = fgetc(f);
-    while (c != '\n' && c != EOF) {
-        n = n*10 + atoi(&c);
-        c = fgetc(f);
+    if (f){
+        char c = fgetc(f);
+        while (c != EOF) {
+            n = n*10 + atoi(&c);
+            c = fgetc(f);
+        }
     }
-
+    
     return n;
 }
 
@@ -112,7 +114,7 @@ int set_top(){
         sprintf(str, "%d", top);
         f = fopen("user.dat", "w");
         fputs(str, f);
-        fputs("\n", f);
+        // fputs("\n", f);
     }
 
     return 1;
@@ -136,7 +138,6 @@ int update_stats(int tiles){
     }
     if (score > top){
         top = score;
-        set_top();
     }
 
     if (lines/10 > level){
@@ -197,7 +198,9 @@ int end_game(){
     int x = BOARD_X + 24;
 
     status = 0;
+    set_top();
     print_board();
+    update_board();
     mvprintw(y++, x+8, "Game over!\n");
     mvprintw(y++, x+2, "Press any key to quit.\n");
     getch();

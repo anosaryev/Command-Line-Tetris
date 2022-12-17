@@ -16,7 +16,7 @@
 #define Z_PIECE 7
 
 #define BOARD_X 11
-#define BOARD_Y 7
+#define BOARD_Y 8
 
 typedef struct piece {
     int map[4][4];

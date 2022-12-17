@@ -69,12 +69,15 @@ int main(){
     srand(time(0));
     
     initscr();
-    cbreak();
     noecho();
+    refresh();
+
     clear();
-    init_colors();
+    cbreak();
     curs_set(0);
     keypad(stdscr, TRUE);
+    
+    init_colors();
     
     top = get_top();
     next_type = choose_piece();
@@ -87,7 +90,7 @@ int main(){
     q = getch();
  
     // moving down thread
-    pthread_t down_id, render_id;
+    pthread_t down_id;
     pthread_create(&down_id, NULL, move_down_passive, NULL);
     
     while (q != 'q' && status){
