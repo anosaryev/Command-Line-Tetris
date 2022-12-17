@@ -38,8 +38,8 @@ int maps[7][4][4] =
         {0, 0, 0, 0} 
     }, { /* J */
         {0, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 1, 1, 1},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
         {0, 0, 0, 0}
     }, { /* T */
         {0, 0, 0, 0},
@@ -442,32 +442,33 @@ int end_game(){
     exit(0);
 }
 
-int rotate_cw(){
-    int new[4][4];
-
-    for (int y = 0; y < 4; y ++){
-        for (int x = 0; x < 4; x ++){
-            new[y][x] = player.map[3-x][y];
+int rotate_cw(int c){
+    int old[4][4];
+    for (int i = 0; i < 4; i ++){
+        for (int j = 0; j < 4; j ++){
+            old[i][j] = player.map[i][j];
         }
     }
 
-    for (int i = 0; i < 4; i ++){
-        for (int j = 0; j < 4; j ++){
-            player.map[i][j] = new[i][j];
+    if (player.type == I_PIECE-1 || player.type == O_PIECE-1){
+        // rotation about centre of 4x4 map
+        for (int y = 0; y < 4; y ++){
+            for (int x = 0; x < 4; x ++){
+                player.map[y][x] = old[3-x][y];
+            }
+        }
+    }else{
+        // rotation about centre of 3x3 inner map
+        for (int y = 1; y < 4; y ++){
+            for (int x = 0; x < 3; x ++){
+                player.map[y][x] = old[3-x][y-1];
+            }
         }
     }
 
     if (!no_collision_check()){
-        for (int y = 0; y < 4; y ++){
-            for (int x = 0; x < 4; x ++){
-                new[y][x] = player.map[x][3-y];
-            }
-        }
-
-        for (int i = 0; i < 4; i ++){
-            for (int j = 0; j < 4; j ++){
-                player.map[i][j] = new[i][j];
-            }
+        if (c < 4){
+            return rotate_loop(c+1);
         }
         return 0;
     }
@@ -508,20 +509,13 @@ int move_down(){
     return 1;
 }
 
-void *render(){
-    while (1){
-        struct timespec t0 = {0, 16666666};
-        nanosleep(&t0, NULL);
-        update_board();
-        refresh();
-    }
-}
-
 void *move_down_passive(){
     while (1){
         struct timespec t0 = {0, delay};
         nanosleep(&t0, NULL);
         move_down();
+        update_board();
+        refresh();
     }
 }
 
@@ -542,7 +536,7 @@ int move_tetromino(int input){
             break;
         case KEY_UP:
         case 'w':
-            rotate_cw();
+            rotate_cw(1);
             break;
         case ' ':
             while(move_down()){}
@@ -581,10 +575,10 @@ int main(){
     // moving down thread
     pthread_t down_id, render_id;
     pthread_create(&down_id, NULL, move_down_passive, NULL);
-    pthread_create(&render_id, NULL, render, NULL);
     
     while (q != 'q' && status){
         move_tetromino(q);
+        update_board();
         q = getch();
     }
     
@@ -592,43 +586,3 @@ int main(){
     endwin();
     exit(0);
 }
-
-/*
-         Command Line Tetris
-
-    Top:    0000000     Next
-    Score:  0000000  [  next  ]
-    Level:  0000000  [  piece ]
-    Lines:  0000000  [  here  ]
-
-      19   . . . . . . . . . .
-      18   . . . . . . . . . .
-      17   . . . . . . . . . .
-      16   . . . . . . . . . .
-      15   . . . . . . . . . .
-      14   . . . . . . . . . .
-      13   . . . . . . . . . .
-      12   . . . . . . . . . .
-      11   . . . . . . . . . .
-      10   . . . . . . . . . .
-      09   . . . . . . . . . .
-      08   . . . . . . . . . .
-      07   . . . . . . . . . .
-      06   . . . . . . . . . .
-      05   . . . . . . . . . .
-      04   . . . . . . . . . .
-      03   . . . . . . . . . .
-      02   . . . . . . . . . .
-      01   . . . . . . . . . .
-      00   . . . . . . . . . .
-
-           0 1 2 3 4 5 6 7 8 9
-           
-               Controls
-         Left or A: Move Left
-        Right or D: Move Right
-          Up or W: Rotate CW
-         Down or S: Soft Drop
-           Space: Hard Drop
-             Q: Quit Game
-*/
