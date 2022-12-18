@@ -60,8 +60,17 @@ void *move_down_passive(){
         struct timespec t0 = {0, delay};
         nanosleep(&t0, NULL);
         move_down();
-        update_board();
-        refresh();
+    }
+}
+
+void *render(){
+    int m;
+    int n = 1;
+    while (n){
+        struct timespec t0 = {0, FRAME_DELAY};
+        nanosleep(&t0, NULL);
+        m = refresh();
+        n = update_board();
     }
 }
 
@@ -89,13 +98,12 @@ int main(){
     print_controls();
     q = getch();
  
-    // moving down thread
-    pthread_t down_id;
+    pthread_t down_id, render_id;
     pthread_create(&down_id, NULL, move_down_passive, NULL);
+    pthread_create(&render_id, NULL, render, NULL);
     
     while (q != 'q' && status){
         move_tetromino(q);
-        update_board();
         q = getch();
     }
     

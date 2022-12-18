@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define FRAME_DELAY 16000000
+
 #define I_PIECE 1
 #define L_PIECE 2
 #define J_PIECE 3
